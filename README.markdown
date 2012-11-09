@@ -7,3 +7,33 @@ is about to expire.  Similar to the technique seen on Mint.com.  Polling request
 interval, maintaining the users session while s/he is using your application for long periods of time.
 
 ![Example](http://www.erichynds.com/examples/jquery-idle-timeout/screenshot.gif)
+
+## Changes
+
+* Added an onSuccess callback
+* Changed the keepAliveUrl to return json.
+
+Example Setup:
+
+	$.idleTimeout('#dialog', 'div.ui-dialog-buttonpane button:first', {
+		idleAfter: 5,
+		pollingInterval: 2,
+		keepAliveURL: 'keepalive.php',
+		serverResponseEquals: 'OK',
+		onTimeout: function(){
+			window.location = "timeout.htm";
+		},
+		onIdle: function(){
+			$(this).dialog("open");
+		},
+		onCountdown: function(counter){
+			$countdown.html(counter); // update the counter
+		},
+		onSucess: function(response){
+			// Do whatever with response
+		}
+	});
+
+Example PHP Response:
+
+	return json_encode(array('msg' => 'OK'));
