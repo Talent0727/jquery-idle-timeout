@@ -11,7 +11,9 @@ interval, maintaining the users session while s/he is using your application for
 ## Changes
 
 * Added an onSuccess callback
-* Changed the keepAliveUrl to return json.
+* Changed the keepAliveUrl to return json
+* Exposed many of the private timer methods
+* Now checks your server session to find out when the last in-browser activity was; good if your users open multiple tabs.
 
 Example Setup:
 
@@ -33,7 +35,3 @@ Example Setup:
 			// Do whatever with response
 		}
 	});
-
-Example PHP Response:
-
-	return json_encode(array('msg' => 'OK'));
