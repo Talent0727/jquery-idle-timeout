@@ -186,7 +186,7 @@
 		onResume: $.noop,
 
 		// callback to fire when the script is aborted due to too many failed requests
-		onAbort: $.noop
+		onAbort: $.noop,
 
 		// An onSuccess callback for when the keepalive is successful.
 		onSuccess: $.noop
