@@ -12,7 +12,7 @@
  *   http://www.opensource.org/licenses/mit-license.php
  *   http://www.gnu.org/licenses/gpl.html
  *
-*/
+ */
 
 (function($, win){
 
@@ -26,13 +26,13 @@
 			this.countdownOpen = false;
 			this.failedRequests = options.failedRequests;
 			this._startTimer();
-      		this.title = document.title;
+			this.title = document.title;
 
 			// expose obj to data cache so peeps can call internal methods
 			$.data( elem[0], 'idletimeout', this );
 
 			// start the idle timer
-			$.idleTimer(options.idleAfter * 1000);
+			$(document).idleTimer({newTimeout: options.idleAfter * 1000});
 
 			// once the user becomes idle
 			$(document).bind("idle.idleTimer", function(){
@@ -76,7 +76,7 @@
 					options.onTimeout.call(warning);
 				} else {
 					options.onCountdown.call(warning, counter);
-          document.title = options.titleMessage.replace('%s', counter) + self.title;
+					document.title = options.titleMessage.replace('%s', counter) + self.title;
 				}
 			}, 1000);
 		},
@@ -116,16 +116,19 @@
 
 			$.ajax({
 				timeout: options.AJAXTimeout,
-				url: options.keepAliveURL,
+				url: options.keepAliveURL + '?lastActive=' + $(document).idleTimer('getTimes')['start'],
 				dataType: "json",
 				error: function(){
 					self.failedRequests--;
 				},
 				success: function(response){
 					if($.trim(response.msg) !== options.serverResponseEquals){
-					  self.failedRequests--;
+						self.failedRequests--;
 					} else {
-					  options.onSuccess.call( undefined, response );
+                        if(self._is_int(response.lastActive) && response.lastActive > $(document).idleTimer('getTimes')['start']) {
+                            $(document).idleTimer('handleUserEvent',response.lastActive);
+                        }
+						options.onSuccess.call( undefined, response );
 					}
 				},
 				complete: function(){
@@ -134,7 +137,10 @@
 					}
 				}
 			});
-		}
+		},
+        _is_int: function(mixed_var) { //http://phpjs.org/functions/is_int/
+            return mixed_var === +mixed_var && isFinite(mixed_var) && !(mixed_var % 1);
+        }
 	};
 
 	// expose
@@ -167,12 +173,12 @@
 		AJAXTimeout: 250,
 
 		// %s will be replaced by the counter value
-    	titleMessage: 'Warning: %s seconds until log out | ',
+		titleMessage: 'Warning: %s seconds until log out | ',
 
 		/*
-			Callbacks
-			"this" refers to the element found by the first selector passed to $.idleTimeout.
-		*/
+		 Callbacks
+		 "this" refers to the element found by the first selector passed to $.idleTimeout.
+		 */
 		// callback to fire when the session times out
 		onTimeout: $.noop,
 
