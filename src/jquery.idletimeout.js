@@ -116,7 +116,8 @@
 
 			$.ajax({
 				timeout: options.AJAXTimeout,
-				url: options.keepAliveURL + '?lastActive=' + $(document).idleTimer('getTimes')['start'],
+				url: options.keepAliveURL + '?lastActive=' + $(document).idleTimer('getTimes')['start']
+										  + '&page=' + encodeURIComponent(window.location.pathname),
 				dataType: "json",
 				error: function(){
 					self.failedRequests--;
