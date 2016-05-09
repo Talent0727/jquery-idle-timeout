@@ -18,7 +18,7 @@
 
 	var idleTimeout = {
 		init: function( element, resume, options ){
-			var self = this, elem;
+			var self = this, elem, visProp = this._getHiddenProp();
 
 			this.warning = elem = $(element);
 			this.resume = $(resume);
@@ -27,6 +27,7 @@
 			this.failedRequests = options.failedRequests;
 			this._startTimer();
 			this.title = document.title;
+			this.focused = true;
 
 			// expose obj to data cache so peeps can call internal methods
 			$.data( elem[0], 'idletimeout', this );
@@ -48,13 +49,34 @@
 			// bind continue link
 			this.resume.bind("click", function(e){
 				e.preventDefault();
-
-				win.clearInterval(self.countdown); // stop the countdown
-				self.countdownOpen = false; // stop countdown
-				self._startTimer(); // start up the timer again
-				self._keepAlive( false ); // ping server
-				options.onResume.call( self.warning ); // call the resume callback
+				self._resume();
 			});
+
+			// don't constantly change the title if the window does not have focus
+			// http://www.html5rocks.com/en/tutorials/pagevisibility/intro/
+			if (visProp) {
+				var evtname = visProp.replace(/[H|h]idden/,'') + 'visibilitychange';
+				document.addEventListener(evtname, function() {
+					if (self._isHidden()) {
+						self.focused = false;
+					}
+					else {
+						self.focused = true;
+					}
+				});
+			}
+		},
+
+		// We need to expose the resume method in order to fire it in inactive windows.
+		_resume: function() {
+			var self = this, options = this.options;
+
+			win.clearInterval(self.countdown); // stop the countdown
+			self.countdownOpen = false; // stop countdown
+			self._startTimer(); // start up the timer again
+			self._keepAlive( false ); // ping server
+			document.title = self.title;
+			options.onResume.call( self.warning ); // call the resume callback
 		},
 
 		_idle: function(){
@@ -76,7 +98,13 @@
 					options.onTimeout.call(warning);
 				} else {
 					options.onCountdown.call(warning, counter);
-					document.title = options.titleMessage.replace('%s', counter) + self.title;
+					// Only change the window title if we have focus to prevent a bug with Chrome not updating on resume properly
+					if (self.focused) {
+						document.title = options.titleMessage.replace('%s', counter) + self.title;
+					}
+					else {
+						document.title = self.title;
+					}
 				}
 			}, 1000);
 		},
@@ -97,7 +125,8 @@
 
 		_keepAlive: function( recurse ){
 			var self = this,
-				options = this.options;
+				options = this.options,
+				warning = this.warning[0];
 
 			//Reset the title to what it was.
 			document.title = self.title;
@@ -110,7 +139,7 @@
 			// if too many requests failed, abort
 			if( !this.failedRequests ){
 				this._stopTimer();
-				options.onAbort.call( this.warning[0] );
+				options.onAbort.call(warning);
 				return;
 			}
 
@@ -119,16 +148,22 @@
 				url: options.keepAliveURL + '?lastActive=' + $(document).idleTimer('getTimes')['start']
 										  + '&page=' + encodeURIComponent(window.location.pathname),
 				dataType: "json",
-				error: function(){
+				error: function(xhr){
 					self.failedRequests--;
+					// Log out on a 401 status
+					if (xhr.status === 401) {
+						self._stopTimer();
+						options.onTimeout.call(warning);
+						return;
+					}
 				},
 				success: function(response){
 					if($.trim(response.msg) !== options.serverResponseEquals){
 						self.failedRequests--;
 					} else {
-                        if(self._is_int(response.lastActive) && response.lastActive > $(document).idleTimer('getTimes')['start']) {
-                            $(document).idleTimer('handleUserEvent',response.lastActive);
-                        }
+						if(self._is_int(response.lastActive) && response.lastActive > $(document).idleTimer('getTimes')['start']) {
+							$(document).idleTimer('handleUserEvent', response.lastActive);
+						}
 						options.onSuccess.call( undefined, response );
 					}
 				},
@@ -139,15 +174,50 @@
 				}
 			});
 		},
-        _is_int: function(mixed_var) { //http://phpjs.org/functions/is_int/
-            return mixed_var === +mixed_var && isFinite(mixed_var) && !(mixed_var % 1);
-        }
+
+		_is_int: function(mixed_var) { //http://phpjs.org/functions/is_int/
+			return mixed_var === +mixed_var && isFinite(mixed_var) && !(mixed_var % 1);
+		},
+
+		_getHiddenProp: function() {
+			var prefixes = ['webkit','moz','ms','o'];
+
+			// if 'hidden' is natively supported just return it
+			if ('hidden' in document) return 'hidden';
+
+			// otherwise loop over all the known prefixes until we find one
+			for (var i = 0; i < prefixes.length; i++){
+				if ((prefixes[i] + 'Hidden') in document) {
+					return prefixes[i] + 'Hidden';
+				}
+			}
+
+			// otherwise it's not supported
+			return null;
+		},
+
+		_isHidden: function() {
+			var self = this;
+			var prop = self._getHiddenProp();
+			if (!prop) {
+				return false;
+			}
+			return document[prop];
+		}
 	};
 
 	// expose
 	$.idleTimeout = function(element, resume, options){
 		idleTimeout.init( element, resume, $.extend($.idleTimeout.options, options) );
 		return this;
+	};
+
+	$.idleTimeout.triggerIdle = function() {
+		idleTimeout._idle();
+	};
+
+	$.idleTimeout.triggerResume = function () {
+		idleTimeout._resume();
 	};
 
 	// options

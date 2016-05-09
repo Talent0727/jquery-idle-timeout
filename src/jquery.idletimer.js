@@ -72,10 +72,17 @@
                  * Moved this to be public so we could trigger "events" from other tabs (by way of the server session)
                  * newOldDate is optional
                  */
-
                 //clear any existing timeout
                 clearTimeout($(document).idleTimer('getTimerId'));
                 $(document).idleTimer('setTimerId',null);
+
+                // Reset timeout counter
+                if (newOldDate !== undefined) { //meaning it was passed in, probably from another tab.
+                    olddate = newOldDate;
+                }
+                else {
+                    olddate = +new Date;
+                }
 
                 //if the idle timer is enabled
                 if (enabled) {
