@@ -158,11 +158,12 @@
 					}
 				},
 				success: function(response){
+					var lastActive = parseInt(response.lastActive);
 					if($.trim(response.msg) !== options.serverResponseEquals){
 						self.failedRequests--;
 					} else {
-						if(self._is_int(response.lastActive) && response.lastActive > $(document).idleTimer('getTimes')['start']) {
-							$(document).idleTimer('handleUserEvent', response.lastActive);
+						if(self._is_int(lastActive) && lastActive > $(document).idleTimer('getTimes')['start']) {
+							$(document).idleTimer('handleUserEvent', lastActive);
 						}
 						options.onSuccess.call( undefined, response );
 					}
