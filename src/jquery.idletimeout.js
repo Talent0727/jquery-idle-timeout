@@ -63,6 +63,7 @@
 					else {
 						self.focused = true;
 					}
+					options.onFocusChange.call(self.focused, self.warning[0]);
 				});
 			}
 		},
@@ -149,6 +150,8 @@
 										  + '&page=' + encodeURIComponent(window.location.pathname),
 				dataType: "json",
 				error: function(xhr){
+					// Temporary comment for testing
+					console.log('keepalive error', self.failedRequests, xhr);
 					self.failedRequests--;
 					// Log out on a 401 status
 					if (xhr.status === 401) {
@@ -163,7 +166,9 @@
 						self.failedRequests--;
 					} else {
 						if(self._is_int(lastActive) && lastActive > $(document).idleTimer('getTimes')['start']) {
+							// Temporary comment for testing
 							$(document).idleTimer('handleUserEvent', lastActive);
+							console.log('keepalive success - start time should be updated', $(document).idleTimer('getTimes'), lastActive);
 						}
 						options.onSuccess.call( undefined, response );
 					}
@@ -267,7 +272,10 @@
 		onAbort: $.noop,
 
 		// An onSuccess callback for when the keepalive is successful.
-		onSuccess: $.noop
+		onSuccess: $.noop,
+
+		// callback for window focus changes
+		onFocusChange: $.noop
 	};
 
 })(jQuery, window);
