@@ -1,0 +1,19 @@
+{
+  "name": "jquery-idle-timeout",
+  "version": "1.2.1",
+  "description": "See the original [Mint.com example](http://www.erichynds.com/examples/jquery-idle-timeout/example-mint.htm), or a [demo](http://www.erichynds.com/examples/jquery-idle-timeout/example-dialog.htm) using jQuery UI's dialog widget.",
+  "main": "./src/idletimeout",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FireEngineRed/jquery-idle-timeout.git"
+  },
+  "author": "",
+  "license": "(MIT OR GPL)",
+  "bugs": {
+    "url": "https://github.com/FireEngineRed/jquery-idle-timeout/issues"
+  },
+  "homepage": "https://github.com/FireEngineRed/jquery-idle-timeout#readme"
+}

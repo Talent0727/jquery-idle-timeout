@@ -14,7 +14,7 @@
  *
  */
 
-(function($, win){
+module.exports = (function($, win){
 
 	var idleTimeout = {
 		init: function( element, resume, options ){

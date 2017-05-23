@@ -37,7 +37,7 @@
  *
  */
 
-(function($){
+module.exports = (function($){
     //http://stackoverflow.com/a/6871820/218967
     var
         sortaPublicMethods = {
