@@ -91,7 +91,8 @@ module.exports = (function($){
                         toggleIdleState(newOldDate);
                     }
                     //set a new timeout
-                    $(document).idleTimer('setTimerId', setTimeout(toggleIdleState, timeout, newOldDate));
+                    var msTillTimeout = Math.max(timeout - (new Date - olddate), 0);
+                    $(document).idleTimer('setTimerId', setTimeout(toggleIdleState, msTillTimeout, newOldDate));
                 }
             },
             getTimes : function() {
